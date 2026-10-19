@@ -1,0 +1,656 @@
+{
+  "version": "1.0",
+  "source": "Original fictional Atlas handbook, MIT",
+  "questions": [
+    {
+      "id": "api-1",
+      "category": "single",
+      "question": "API 连接和读取超时分别是多少？",
+      "evidence": [
+        {
+          "document": "api.md",
+          "text": "Atlas API 客户端连接超时为 3 秒，读取超时为 20 秒。超过读取超时返回 timeout 错误。"
+        }
+      ]
+    },
+    {
+      "id": "api-2",
+      "category": "single",
+      "question": "如何处理 API 请求失败后的重试？",
+      "evidence": [
+        {
+          "document": "api.md",
+          "text": "API 请求失败后，仅对 429、502、503 和网络超时重试。最多重试 3 次，等待 1、2、4 秒并增加随机抖动。"
+        }
+      ]
+    },
+    {
+      "id": "api-3",
+      "category": "single",
+      "question": "支付请求的幂等键保存多久，同键不同请求体怎么办？",
+      "evidence": [
+        {
+          "document": "api.md",
+          "text": "支付创建请求必须携带 Idempotency-Key，服务端保存该键 24 小时。同键不同请求体返回 409。"
+        }
+      ]
+    },
+    {
+      "id": "api-4",
+      "category": "single",
+      "question": "API 错误响应有哪些字段？",
+      "evidence": [
+        {
+          "document": "api.md",
+          "text": "API 错误响应包含 code、message、request_id 三个字段。日志按 request_id 关联上下游调用。"
+        }
+      ]
+    },
+    {
+      "id": "database-1",
+      "category": "single",
+      "question": "数据库迁移的执行顺序是什么？",
+      "evidence": [
+        {
+          "document": "database.md",
+          "text": "数据库迁移采用扩展后收缩流程：先增加可空列，再部署兼容代码，最后回填并加约束。"
+        }
+      ]
+    },
+    {
+      "id": "database-2",
+      "category": "single",
+      "question": "数据库迁移如何回滚？",
+      "evidence": [
+        {
+          "document": "database.md",
+          "text": "数据库迁移回滚前检查备份和兼容窗口。删除列的迁移不能直接回滚，应恢复备份或追加修复迁移。"
+        }
+      ]
+    },
+    {
+      "id": "database-3",
+      "category": "single",
+      "question": "数据库连接池的容量和等待时间是多少？",
+      "evidence": [
+        {
+          "document": "database.md",
+          "text": "数据库连接池默认 10 个连接，允许额外 5 个溢出连接；获取连接最多等待 15 秒。"
+        }
+      ]
+    },
+    {
+      "id": "database-4",
+      "category": "single",
+      "question": "库存扣减和订单创建如何保证原子性？",
+      "evidence": [
+        {
+          "document": "database.md",
+          "text": "库存扣减和订单创建使用同一事务。发生任何异常时整体回滚，事务外发送通知。"
+        }
+      ]
+    },
+    {
+      "id": "stream-1",
+      "category": "single",
+      "question": "SSE 如何恢复断开的连接？",
+      "evidence": [
+        {
+          "document": "stream.md",
+          "text": "SSE 每个事件带递增 id。客户端重连时发送 Last-Event-ID，服务端从下一个事件继续回放。"
+        }
+      ]
+    },
+    {
+      "id": "stream-2",
+      "category": "single",
+      "question": "SSE 心跳和代理超时如何设置？",
+      "evidence": [
+        {
+          "document": "stream.md",
+          "text": "SSE 空闲期间每 15 秒发送注释心跳。代理读取超时设为 60 秒，并关闭响应缓冲。"
+        }
+      ]
+    },
+    {
+      "id": "stream-3",
+      "category": "single",
+      "question": "SSE 事件使用什么响应类型和分隔方式？",
+      "evidence": [
+        {
+          "document": "stream.md",
+          "text": "SSE 响应类型是 text/event-stream。一个事件由 event 和 data 行组成，以两个换行结束。"
+        }
+      ]
+    },
+    {
+      "id": "stream-4",
+      "category": "single",
+      "question": "SSE 恢复游标过期怎么办？",
+      "evidence": [
+        {
+          "document": "stream.md",
+          "text": "SSE 事件日志保留 7 天。恢复游标早于保留窗口时返回 410，客户端重新加载快照。"
+        }
+      ]
+    },
+    {
+      "id": "cache-1",
+      "category": "single",
+      "question": "商品详情缓存的 TTL 如何设置？",
+      "evidence": [
+        {
+          "document": "cache.md",
+          "text": "商品详情缓存 TTL 为 300 秒，并添加 0 到 30 秒的随机过期抖动。"
+        }
+      ]
+    },
+    {
+      "id": "cache-2",
+      "category": "single",
+      "question": "数据库更新后如何处理缓存失效？",
+      "evidence": [
+        {
+          "document": "cache.md",
+          "text": "数据库更新提交后删除对应缓存键。删除失败写入重试队列，消费者按退避策略补偿。"
+        }
+      ]
+    },
+    {
+      "id": "cache-3",
+      "category": "single",
+      "question": "不存在的商品如何防止缓存穿透？",
+      "evidence": [
+        {
+          "document": "cache.md",
+          "text": "不存在的商品使用空值缓存，TTL 为 30 秒。公开查询入口还应校验商品标识格式。"
+        }
+      ]
+    },
+    {
+      "id": "cache-4",
+      "category": "single",
+      "question": "热门缓存键过期如何避免大量回源？",
+      "evidence": [
+        {
+          "document": "cache.md",
+          "text": "热门缓存键过期时使用单航班锁，仅允许一个请求回源，其余请求等待或使用旧值。"
+        }
+      ]
+    },
+    {
+      "id": "queue-1",
+      "category": "single",
+      "question": "队列消费者应在什么时候确认消息？",
+      "evidence": [
+        {
+          "document": "queue.md",
+          "text": "队列消费者在数据库事务提交后确认消息。业务处理失败时不确认，交由重投策略处理。"
+        }
+      ]
+    },
+    {
+      "id": "queue-2",
+      "category": "single",
+      "question": "后台任务重投上限和幂等机制是什么？",
+      "evidence": [
+        {
+          "document": "queue.md",
+          "text": "后台任务最多投递 5 次，超过上限进入死信队列。每次处理前检查 task_id 幂等记录。"
+        }
+      ]
+    },
+    {
+      "id": "queue-3",
+      "category": "single",
+      "question": "后台任务取消如何生效？",
+      "evidence": [
+        {
+          "document": "queue.md",
+          "text": "任务取消是协作式操作。Worker 在每个工具边界检查取消标记，正在执行的步骤完成后停止。"
+        }
+      ]
+    },
+    {
+      "id": "queue-4",
+      "category": "single",
+      "question": "Worker 的续租周期和租约有效期是多少？",
+      "evidence": [
+        {
+          "document": "queue.md",
+          "text": "Worker 每 10 秒续租，租约有效期 45 秒。租约过期后任务进入待恢复状态。"
+        }
+      ]
+    },
+    {
+      "id": "security-1",
+      "category": "single",
+      "question": "模型 API 密钥应该保存在哪里？",
+      "evidence": [
+        {
+          "document": "security.md",
+          "text": "模型 API 密钥仅保存在服务端环境变量，不写入仓库、浏览器存储或任务日志。"
+        }
+      ]
+    },
+    {
+      "id": "security-2",
+      "category": "single",
+      "question": "日志应该过滤哪些敏感字段？",
+      "evidence": [
+        {
+          "document": "security.md",
+          "text": "日志过滤 Authorization、api_key、access_token 字段；异常记录只保留错误类型和 request_id。"
+        }
+      ]
+    },
+    {
+      "id": "security-3",
+      "category": "single",
+      "question": "知识库数据如何按工作空间隔离？",
+      "evidence": [
+        {
+          "document": "security.md",
+          "text": "知识库检索必须携带 workspace_id 过滤条件，删除和读取接口也要验证资源所属空间。"
+        }
+      ]
+    },
+    {
+      "id": "security-4",
+      "category": "single",
+      "question": "文件工具如何避免路径越界？",
+      "evidence": [
+        {
+          "document": "security.md",
+          "text": "文件工具先规范化路径并解析链接，再验证最终路径位于工作区根目录内，禁止访问 .git 与 .env。"
+        }
+      ]
+    },
+    {
+      "id": "deploy-1",
+      "category": "single",
+      "question": "存活探针和就绪探针有什么区别？",
+      "evidence": [
+        {
+          "document": "deploy.md",
+          "text": "存活探针仅检查进程；就绪探针检查数据库和检索服务。就绪失败时停止接收新流量。"
+        }
+      ]
+    },
+    {
+      "id": "deploy-2",
+      "category": "single",
+      "question": "发布后达到什么条件需要回退？",
+      "evidence": [
+        {
+          "document": "deploy.md",
+          "text": "发布保留前一个镜像摘要。错误率连续 3 分钟超过 5% 时回退应用镜像，数据库使用兼容迁移。"
+        }
+      ]
+    },
+    {
+      "id": "deploy-3",
+      "category": "single",
+      "question": "服务优雅停机的顺序是什么？",
+      "evidence": [
+        {
+          "document": "deploy.md",
+          "text": "服务收到 SIGTERM 后停止接收新任务，最多等待 30 秒让在途请求结束，再关闭连接池。"
+        }
+      ]
+    },
+    {
+      "id": "deploy-4",
+      "category": "single",
+      "question": "部署配置的优先级是什么？",
+      "evidence": [
+        {
+          "document": "deploy.md",
+          "text": "配置优先级为显式启动参数、环境变量、配置文件、默认值。启动时校验必填模型配置。"
+        }
+      ]
+    },
+    {
+      "id": "retrieval-1",
+      "category": "single",
+      "question": "技术文档如何分块和保留定位信息？",
+      "evidence": [
+        {
+          "document": "retrieval.md",
+          "text": "技术文档按标题和段落分块，目标长度 800 字符，长段落重叠 150 字符，保留页码。"
+        }
+      ]
+    },
+    {
+      "id": "retrieval-2",
+      "category": "single",
+      "question": "BM25 和向量检索如何融合？",
+      "evidence": [
+        {
+          "document": "retrieval.md",
+          "text": "混合检索合并 BM25 与向量排名，使用 RRF，常量 k 为 60；RRF 使用名次而不是原始分数。"
+        }
+      ]
+    },
+    {
+      "id": "retrieval-3",
+      "category": "single",
+      "question": "Embedding 模型变更后索引如何处理？",
+      "evidence": [
+        {
+          "document": "retrieval.md",
+          "text": "Embedding 模型变更后必须重建索引，不允许在同一个集合混用不同维度或语义空间的向量。"
+        }
+      ]
+    },
+    {
+      "id": "retrieval-4",
+      "category": "single",
+      "question": "删除文档时需要清理哪些数据？",
+      "evidence": [
+        {
+          "document": "retrieval.md",
+          "text": "文档删除时同时删除原文元数据和向量点。检索时只允许读取状态为 ready 的文档。"
+        }
+      ]
+    },
+    {
+      "id": "evaluation-1",
+      "category": "single",
+      "question": "Recall@5 如何计算多证据问题？",
+      "evidence": [
+        {
+          "document": "evaluation.md",
+          "text": "Recall@5 为前五条结果命中的标注证据数量除以全部标注证据数量；多证据问题按完整集合计分。"
+        }
+      ]
+    },
+    {
+      "id": "evaluation-2",
+      "category": "single",
+      "question": "MRR 指标如何计算？",
+      "evidence": [
+        {
+          "document": "evaluation.md",
+          "text": "MRR 使用第一条相关结果名次的倒数，再对有答案问题求平均；无命中记为 0。"
+        }
+      ]
+    },
+    {
+      "id": "evaluation-3",
+      "category": "single",
+      "question": "评测报告需要记录哪些复现信息？",
+      "evidence": [
+        {
+          "document": "evaluation.md",
+          "text": "每份评测报告记录代码提交、数据集哈希、模型名称、运行时间和运行模式。演示结果不能代表真实模型能力。"
+        }
+      ]
+    },
+    {
+      "id": "evaluation-4",
+      "category": "single",
+      "question": "请求延迟评测应报告哪些统计量？",
+      "evidence": [
+        {
+          "document": "evaluation.md",
+          "text": "请求延迟使用单调时钟测量。统计 p50 和 p95，并同时报告样本数和失败数。"
+        }
+      ]
+    },
+    {
+      "id": "testing-1",
+      "category": "single",
+      "question": "测试容器采取哪些隔离措施？",
+      "evidence": [
+        {
+          "document": "testing.md",
+          "text": "测试容器禁网、根文件系统只读、删除全部 Linux capabilities，不挂载 Docker socket。"
+        }
+      ]
+    },
+    {
+      "id": "testing-2",
+      "category": "single",
+      "question": "单次测试的资源和时间上限是什么？",
+      "evidence": [
+        {
+          "document": "testing.md",
+          "text": "单次测试限时 60 秒，限制 256 MB 内存、1 个 CPU 和 64 个进程。超时后移除容器。"
+        }
+      ]
+    },
+    {
+      "id": "testing-3",
+      "category": "single",
+      "question": "什么情况下才能标记测试验证通过？",
+      "evidence": [
+        {
+          "document": "testing.md",
+          "text": "只有测试进程退出码为 0 才能标记验证通过。未运行、无测试、引擎不可用均不能视为成功。"
+        }
+      ]
+    },
+    {
+      "id": "testing-4",
+      "category": "single",
+      "question": "外部验收测试如何避免被 Agent 修改？",
+      "evidence": [
+        {
+          "document": "testing.md",
+          "text": "外部验收测试独立于 Agent 工作区，运行时只读挂载。报告区分项目自带测试和外部验收结果。"
+        }
+      ]
+    },
+    {
+      "id": "cross-1",
+      "category": "cross",
+      "question": "API 连接和读取超时分别是多少？另外，队列消费者应在什么时候确认消息？",
+      "evidence": [
+        {
+          "document": "api.md",
+          "text": "Atlas API 客户端连接超时为 3 秒，读取超时为 20 秒。超过读取超时返回 timeout 错误。"
+        },
+        {
+          "document": "queue.md",
+          "text": "队列消费者在数据库事务提交后确认消息。业务处理失败时不确认，交由重投策略处理。"
+        }
+      ]
+    },
+    {
+      "id": "cross-2",
+      "category": "cross",
+      "question": "数据库迁移的执行顺序是什么？另外，存活探针和就绪探针有什么区别？",
+      "evidence": [
+        {
+          "document": "database.md",
+          "text": "数据库迁移采用扩展后收缩流程：先增加可空列，再部署兼容代码，最后回填并加约束。"
+        },
+        {
+          "document": "deploy.md",
+          "text": "存活探针仅检查进程；就绪探针检查数据库和检索服务。就绪失败时停止接收新流量。"
+        }
+      ]
+    },
+    {
+      "id": "cross-3",
+      "category": "cross",
+      "question": "SSE 如何恢复断开的连接？另外，队列消费者应在什么时候确认消息？",
+      "evidence": [
+        {
+          "document": "stream.md",
+          "text": "SSE 每个事件带递增 id。客户端重连时发送 Last-Event-ID，服务端从下一个事件继续回放。"
+        },
+        {
+          "document": "queue.md",
+          "text": "队列消费者在数据库事务提交后确认消息。业务处理失败时不确认，交由重投策略处理。"
+        }
+      ]
+    },
+    {
+      "id": "cross-4",
+      "category": "cross",
+      "question": "商品详情缓存的 TTL 如何设置？另外，数据库迁移的执行顺序是什么？",
+      "evidence": [
+        {
+          "document": "cache.md",
+          "text": "商品详情缓存 TTL 为 300 秒，并添加 0 到 30 秒的随机过期抖动。"
+        },
+        {
+          "document": "database.md",
+          "text": "数据库迁移采用扩展后收缩流程：先增加可空列，再部署兼容代码，最后回填并加约束。"
+        }
+      ]
+    },
+    {
+      "id": "cross-5",
+      "category": "cross",
+      "question": "模型 API 密钥应该保存在哪里？另外，技术文档如何分块和保留定位信息？",
+      "evidence": [
+        {
+          "document": "security.md",
+          "text": "模型 API 密钥仅保存在服务端环境变量，不写入仓库、浏览器存储或任务日志。"
+        },
+        {
+          "document": "retrieval.md",
+          "text": "技术文档按标题和段落分块，目标长度 800 字符，长段落重叠 150 字符，保留页码。"
+        }
+      ]
+    },
+    {
+      "id": "cross-6",
+      "category": "cross",
+      "question": "存活探针和就绪探针有什么区别？另外，测试容器采取哪些隔离措施？",
+      "evidence": [
+        {
+          "document": "deploy.md",
+          "text": "存活探针仅检查进程；就绪探针检查数据库和检索服务。就绪失败时停止接收新流量。"
+        },
+        {
+          "document": "testing.md",
+          "text": "测试容器禁网、根文件系统只读、删除全部 Linux capabilities，不挂载 Docker socket。"
+        }
+      ]
+    },
+    {
+      "id": "cross-7",
+      "category": "cross",
+      "question": "技术文档如何分块和保留定位信息？另外，Recall@5 如何计算多证据问题？",
+      "evidence": [
+        {
+          "document": "retrieval.md",
+          "text": "技术文档按标题和段落分块，目标长度 800 字符，长段落重叠 150 字符，保留页码。"
+        },
+        {
+          "document": "evaluation.md",
+          "text": "Recall@5 为前五条结果命中的标注证据数量除以全部标注证据数量；多证据问题按完整集合计分。"
+        }
+      ]
+    },
+    {
+      "id": "cross-8",
+      "category": "cross",
+      "question": "Recall@5 如何计算多证据问题？另外，测试容器采取哪些隔离措施？",
+      "evidence": [
+        {
+          "document": "evaluation.md",
+          "text": "Recall@5 为前五条结果命中的标注证据数量除以全部标注证据数量；多证据问题按完整集合计分。"
+        },
+        {
+          "document": "testing.md",
+          "text": "测试容器禁网、根文件系统只读、删除全部 Linux capabilities，不挂载 Docker socket。"
+        }
+      ]
+    },
+    {
+      "id": "cross-9",
+      "category": "cross",
+      "question": "API 连接和读取超时分别是多少？另外，模型 API 密钥应该保存在哪里？",
+      "evidence": [
+        {
+          "document": "api.md",
+          "text": "Atlas API 客户端连接超时为 3 秒，读取超时为 20 秒。超过读取超时返回 timeout 错误。"
+        },
+        {
+          "document": "security.md",
+          "text": "模型 API 密钥仅保存在服务端环境变量，不写入仓库、浏览器存储或任务日志。"
+        }
+      ]
+    },
+    {
+      "id": "cross-10",
+      "category": "cross",
+      "question": "SSE 如何恢复断开的连接？另外，Recall@5 如何计算多证据问题？",
+      "evidence": [
+        {
+          "document": "stream.md",
+          "text": "SSE 每个事件带递增 id。客户端重连时发送 Last-Event-ID，服务端从下一个事件继续回放。"
+        },
+        {
+          "document": "evaluation.md",
+          "text": "Recall@5 为前五条结果命中的标注证据数量除以全部标注证据数量；多证据问题按完整集合计分。"
+        }
+      ]
+    },
+    {
+      "id": "unknown-1",
+      "category": "unanswerable",
+      "question": "公司今年营收是多少？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-2",
+      "category": "unanswerable",
+      "question": "CEO 的电话号码是多少？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-3",
+      "category": "unanswerable",
+      "question": "广州明天会下雨吗？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-4",
+      "category": "unanswerable",
+      "question": "系统使用的 GPU 型号是什么？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-5",
+      "category": "unanswerable",
+      "question": "团队有多少名员工？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-6",
+      "category": "unanswerable",
+      "question": "春节放假安排是什么？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-7",
+      "category": "unanswerable",
+      "question": "知识库管理员的真实密码是什么？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-8",
+      "category": "unanswerable",
+      "question": "Atlas 的客户名单有哪些？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-9",
+      "category": "unanswerable",
+      "question": "这个项目获得多少 GitHub Star？",
+      "evidence": []
+    },
+    {
+      "id": "unknown-10",
+      "category": "unanswerable",
+      "question": "公司银行账户是多少？",
+      "evidence": []
+    }
+  ]
+}
