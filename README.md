@@ -2,7 +2,7 @@
 
 **让技术文档成为有据可查的答案。** 一个面向本地单用户的知识库问答项目，展示文档解析、混合检索、引用溯源与可复现评测。
 
-[![CI](https://github.com/whitecathu/evidence-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/whitecathu/evidence-rag/actions/workflows/ci.yml)
+[CI 配置模板](ci/github-actions.yml) · 待 GitHub `workflow` 权限授权启用，远程 CI 尚未运行。
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB) ![Vue](https://img.shields.io/badge/Vue-3-42b883) ![License](https://img.shields.io/badge/License-MIT-green)
 
 <img src="docs/screenshot.png" alt="Evidence RAG 本地演示界面" width="650">

@@ -1,0 +1,41 @@
+name: CI
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.18"
+      - run: uv sync --frozen
+      - run: uv run ruff check .
+      - run: uv run pytest -q
+      - run: uv run python -m evals.run
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t evidence-rag:ci .
+      - run: docker run -d --name evidence-smoke -p 127.0.0.1:18000:8000 evidence-rag:ci
+      - run: curl --fail --retry 15 --retry-connrefused --retry-delay 2 http://127.0.0.1:18000/api/health
+      - run: curl --fail http://127.0.0.1:18000/ | grep 'script type="module"'
+      - if: always()
+        run: docker logs evidence-smoke; docker rm -f evidence-smoke
